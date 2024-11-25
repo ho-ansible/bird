@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+# Firewall rules for bird service
+{% set bgp_rule = '-i ' ~ bgp_iface
+  ~ ' -p tcp --dport ' ~ bgp_port 
+  ~ ' -m comment --comment bird_BGP'
+  ~ ' -j ACCEPT' %}
+
+{%- macro ipt(rule, action='A', chain='INPUT', ipv6='') -%}
+  /usr/sbin/ip{{ ipv6 }}tables -{{ action }} {{ chain }} {{ rule }}
+{%- endmacro %}
+{%- macro ipt6(rule, action='A', chain='INPUT') -%}
+  {{ ipt(rule, action, chain, '6') }}
+{%- endmacro %}
+
+[Service]
+# Clear existing rule if present
+ExecStartPre=-!{{  ipt(bgp_rule, 'D') }}
+ExecStartPre=-!{{ ipt6(bgp_rule, 'D') }}
+# Add rule
+ExecStartPre=!{{  ipt(bgp_rule) }}
+ExecStartPre=!{{ ipt6(bgp_rule) }}
+# Cleanup
+ExecStopPost=-!{{  ipt(bgp_rule, 'D') }} 
+ExecStopPost=-!{{ ipt6(bgp_rule, 'D') }} 

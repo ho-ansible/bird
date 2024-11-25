@@ -1,1 +1,3 @@
 ---
+bird_conf: ""
+bgp_port: 179

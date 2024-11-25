@@ -2,9 +2,9 @@
 # Uninstall role
 # Run prior to removing host from inventory groups, so hostvars are accessible
 ---
-- name: template | uninstall
-  hosts: all
+- name: bird | uninstall
+  hosts: bgp
   tasks:
   - include_role:
-      name: template
+      name: bird
       tasks_from: uninstall.yml

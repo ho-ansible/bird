@@ -1,1 +1,42 @@
 ---
+
+- name: bird | package
+  tags:
+  - package
+  package:
+    name: bird2
+  notify: restart bird
+
+- name: bird | config
+  tags:
+  - config
+  copy:
+    content: "{{ bird_conf }}"
+    dest: /etc/bird/bird.conf
+    owner: bird
+    group: bird
+    mode: "0640"
+  notify: restart bird 
+
+- name: bird | firewall config dir
+  file:
+    path: "{{ bird_iptables_conf | dirname }}"
+    state: directory
+
+- name: bird | firewall config
+  tags:
+  - config
+  template:
+    src: iptables.conf.j2
+    dest: "{{ bird_iptables_conf }}"
+  notify:
+  - daemon-reload
+  - restart bird
+
+- name: bird | service
+  tags:
+  - service
+  service:
+    name: bird
+    state: started
+    enabled: yes

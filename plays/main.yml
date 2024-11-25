@@ -1,10 +1,10 @@
 #! /usr/bin/env ansible-playbook
-# Configure template role
-# Replace 'all' with your own inventory group
+# Configure bird role
+# Replace 'bgp' with your own inventory group
 ---
-- name: template | template role
-  hosts: all
+- name: bird | BGP
+  hosts: bgp
   roles:
-  - role: template
+  - role: bird
     tags:
-    - template
+    - bird

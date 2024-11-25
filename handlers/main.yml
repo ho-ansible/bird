@@ -1,1 +1,7 @@
 ---
+- name: restart bird
+  tags:
+  - service
+  service:
+    name: bird
+    state: restarted

@@ -10,8 +10,8 @@
 - name: bird | config
   tags:
   - config
-  copy:
-    content: "{{ bird_conf }}"
+  template:
+    src: bird.conf.j2
     dest: /etc/bird/bird.conf
     owner: bird
     group: bird
@@ -26,6 +26,7 @@
 - name: bird | firewall config
   tags:
   - config
+  - firewall
   template:
     src: iptables.conf.j2
     dest: "{{ bird_iptables_conf }}"

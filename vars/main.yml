@@ -1,2 +1,15 @@
 ---
 bird_iptables_conf: /etc/systemd/system/bird.service.d/iptables.conf
+bgp_ports:
+- name: bgp
+  proto: tcp
+  port: 179
+- name: bfd_control
+  proto: udp
+  port: 3784
+- name: bfd_echo
+  proto: udp
+  port: 3785
+- name: bfd_multihop
+  proto: udp
+  port: 4784

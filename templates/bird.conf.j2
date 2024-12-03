@@ -1,0 +1,15 @@
+# {{ template_destpath }}
+# {{ ansible_managed }}
+
+router id {{ bird_id }};
+{{ bird_config }}
+
+protocol device {}
+protocol direct {}
+
+{% for conf_var in q('varnames', '^bird_(protocol|template|filter)_') %}
+{{ conf_var | regex_replace('^bird_', '') | regex_replace('_', ' ') }} {
+  {{ vars[conf_var] | indent(2) }}
+}
+
+{% endfor %}

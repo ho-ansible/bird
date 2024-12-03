@@ -1,24 +1,28 @@
 # {{ ansible_managed }}
 # Firewall rules for bird service
-{% set bgp_rule = '-i ' ~ bgp_iface
-  ~ ' -p tcp --dport ' ~ bgp_port 
-  ~ ' -m comment --comment bird_BGP'
-  ~ ' -j ACCEPT' %}
 
-{%- macro ipt(rule, action='A', chain='INPUT', ipv6='') -%}
-  /usr/sbin/ip{{ ipv6 }}tables -{{ action }} {{ chain }} {{ rule }}
-{%- endmacro %}
-{%- macro ipt6(rule, action='A', chain='INPUT') -%}
-  {{ ipt(rule, action, chain, '6') }}
+{%- macro ipt(rule, action='A', chain='in_bgp', onStop=False, canFail=False) -%}
+{%    set pfx = 'ExecStopPost' if onStop else 'ExecStartPre' %}
+{%    set fail = '-' if canFail else ' ' %}
+{{ pfx }}={{ fail }}!/usr/sbin/iptables  -{{ action }} {{ chain }} {{ rule }}
+{{ pfx }}={{ fail }}!/usr/sbin/ip6tables -{{ action }} {{ chain }} {{ rule }}
 {%- endmacro %}
 
 [Service]
-# Clear existing rule if present
-ExecStartPre=-!{{  ipt(bgp_rule, 'D') }}
-ExecStartPre=-!{{ ipt6(bgp_rule, 'D') }}
-# Add rule
-ExecStartPre=!{{  ipt(bgp_rule) }}
-ExecStartPre=!{{ ipt6(bgp_rule) }}
+# Create custom chain
+{{ ipt('', 'N', canFail=True) }}
+{{ ipt('', 'F') }}
+{% set chain_ref = '-i ' ~ bgp_iface ~ ' -j in_bgp' %}
+{{ ipt(chain_ref, 'D', 'INPUT', canFail=True) }}
+{{ ipt(chain_ref, 'A', 'INPUT') }}
+
+# Populate chain with rules
+{% for rule in bgp_ports | d %}
+{{ ipt('-p ' ~ rule.proto ~ ' --dport ' ~ rule.port ~ ' -j ACCEPT -m comment --comment ' ~ rule.name) }}
+{% endfor %}
+
 # Cleanup
-ExecStopPost=-!{{  ipt(bgp_rule, 'D') }} 
-ExecStopPost=-!{{ ipt6(bgp_rule, 'D') }} 
+{{ ipt(chain_ref, 'D', 'INPUT', canFail=True, onStop=True) }}
+{{ ipt('', 'F', onStop=True) }}
+{{ ipt('', 'X', canFail=True, onStop=True) }}
+

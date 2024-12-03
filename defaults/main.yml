@@ -1,8 +1,7 @@
 ---
 bgp_iface: "{{ ansible_default_ipv4.alias }}"
-bird_id: "{{ ansible_default_ipv4.address }}"
-bird_config:
-bird_protocol_kernel: |
-  ipv4 {
-    export all;
-  }
+bird_ip: "{{ ansible_default_ipv4.address }}"
+bird_conf: |
+  log syslog all;
+  protocol kernel {}
+bird_bgp_neighbors: []

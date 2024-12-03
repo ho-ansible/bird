@@ -1,15 +1,16 @@
 # {{ template_destpath }}
 # {{ ansible_managed }}
 
-router id {{ bird_id }};
-{{ bird_config }}
+define bgp_ip = {{ bird_ip }};
+router id bgp_ip;
 
 protocol device {}
-protocol direct {}
 
-{% for conf_var in q('varnames', '^bird_(protocol|template|filter)_') %}
-{{ conf_var | regex_replace('^bird_', '') | regex_replace('_', ' ') }} {
-  {{ vars[conf_var] | indent(2) }}
-}
+{{ bird_conf }}
+
+{% for rule in bird_bgp_neighbors %}
+{%    for nbr, ip in rule.neighbors.items() %}
+protocol bgp {{ rule.name }}_{{ nbr }} from {{ rule.template }} { neighbor {{ ip }}; }
+{%   endfor %}
 
 {% endfor %}
